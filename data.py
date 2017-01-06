@@ -35,8 +35,11 @@ def update_data(sym,source,path='data'):
         print('%s already up to date. Skipping' % sym)
     
 def load_data(sym,path='data'):
-    return pd.read_csv(os.path.join(path,'%s.csv' 
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)),path)
+    df = pd.read_csv(os.path.join(path,'%s.csv' 
                                     % sym.upper())).set_index('Date')  
+    df['Volume'] = df['Volume'].astype(float)
+    return df
 
 if __name__=='__main__':
     syms = ['VXX','SPY','USO','IEF']

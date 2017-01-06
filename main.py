@@ -9,13 +9,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from data import load_data
-from preprocess import get_returns
+from preprocess import add_returns
 from indicators import add_all_technicals
 
 syms = ['SPY']
 for s in syms:
     df = load_data(s)
-    df = get_returns(df)
+    df = add_returns(df)
     df = add_all_technicals(df).dropna()
 df['pos'] = ((df['Adj Close'] < df['EMA30']) & (df['Adj Close'] < df['DEMA30'])).astype(int).shift()
 df = df.dropna()

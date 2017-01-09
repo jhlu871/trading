@@ -252,6 +252,27 @@ def add_pattern_indicator(df,name,penetration=0):
     return df
 
 def add_indicators(df,**kwargs):
+    """ Adds all the specified indicators to the input DataFrame.
+    
+    Parameters
+    ----------
+    df: pandas DataFrame
+        Input DataFrame of basica data
+        
+    **kwargs: Variable numbe keyword={params} pairs
+        Each keyword is the name of an indicator, and the dict params is a 
+        named keyword value dictionary of the parameters used for the 
+        indicator
+    
+    Returns
+    -------
+    df: pandas DataFrame
+        Returns the input dataframe with the indicator results attached
+        as columns
+    
+    Example usage: add_indicators(df,EMA={'period':30},DEMA={'period':20})
+    
+    """
     function_groups = ta.get_function_groups()
     for k,arg in kwargs.items():
         group = None

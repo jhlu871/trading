@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan  5 16:20:28 2017
-
-@author: Jason
-"""
-
-# -*- coding: utf-8 -*-
-"""
 Created on Thu Jan  5 15:51:02 2017
 
 @author: Jason
@@ -14,9 +7,8 @@ Created on Thu Jan  5 15:51:02 2017
 
 import numpy as np
 import pandas as pd
-from backtest import Strategy, Portfolio
-from preprocess import add_returns
-from indicators import add_all_technicals
+from backtest import Strategy
+from indicators import add_indicators, column_name
 from data import load_data
 
 class EMA_DEMA(Strategy):
@@ -38,17 +30,27 @@ class EMA_DEMA(Strategy):
         trading signals with timestamps
     """
     
-    def __init__(self,symbol):
+    def __init__(self,symbol,EMA_period=20,DEMA_period=20,trade_time='Close'):
         """ Initialize the ticker and get pandas DataFrame of data """
         self.symbol = symbol
-        self.data = load_data(symbol)
+        self.data = add_indicators(load_data(symbol),
+                                   EMA={'period':EMA_period},
+                                   DEMA={'period':DEMA_period})
+        self.EMA_period = EMA_period
+        self.DEMA_period = DEMA_period
+        self.trade_time = trade_time
+
         
     def generate_signals(self):
-        """ Creates a pandas DataFrame of trading signals."""
-        df = add_returns(self.data)
-        df = add_all_technicals(df)
-        df['pos'] = ((df['Adj Close'] < df['EMA30']) & 
-                    (df['Adj Close'] < df['DEMA30'])).astype(int).shift()
-        self.signals = df.pos.dropna().diff()
-        self.signals[0] = 0
+        """ Create a pandas DataFrame of trading signals."""
+        EMA_name = column_name('EMA',self.EMA_period)
+        DEMA_name = column_name('DEMA',self.DEMA_period)
+        self.data['pos'] = ((self.data['Adj Close'] < self.data[EMA_name]) & 
+                    (self.data['Adj Close'] < self.data[DEMA_name])).astype(int).shift()
+        if self.trade_time == 'Close':
+            self.data['trades'] = self.data.pos.diff().shift(-1)
+        elif self.trade_time == 'Open':
+            self.data['trades'] = self.data.pos.diff()   
+        self.signals = self.data[['pos','trades']].dropna()
+        self.signals['price'] = self.data[self.trade_time]
         return self.signals
